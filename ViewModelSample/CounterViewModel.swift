@@ -9,19 +9,6 @@
 import RxSwift
 import RxCocoa
 
-class CounterViewModel {
-
-    let state: Driver<Counter>
-
-    let uiEvents = PublishRelay<Counter.Event>()
-
-    init() {
-        state = uiEvents
-            .scan(.empty, accumulator: Counter.reduce)
-            .asDriver(onErrorJustReturn: .empty)
-    }
-}
-
 fileprivate extension Counter {
     static func reduce(state: Counter, event: Event) -> Counter {
         switch event {
@@ -30,6 +17,14 @@ fileprivate extension Counter {
         case .reset:
             return Counter.empty
         }
+    }
+}
+
+extension ObservableConvertibleType where E == Counter.Event {
+    func toViewState(initialState: Counter) -> Driver<Counter> {
+        return asObservable()
+            .scan(initialState, accumulator: Counter.reduce)
+            .asDriver(onErrorJustReturn: .empty)
     }
 }
 

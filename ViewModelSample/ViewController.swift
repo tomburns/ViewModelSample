@@ -21,9 +21,6 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var resetButton: UIButton!
 
-    // this would have dependencies and be injected in a real app
-    let viewModel = CounterViewModel()
-
     let disposeBag = DisposeBag()
 
     override func viewDidLoad() {
@@ -33,18 +30,11 @@ class ViewController: UIViewController {
         let add5 = add5Button.rx.tap.map { Counter.Event.add(5) }
         let reset = resetButton.rx.tap.map { Counter.Event.reset }
 
-        let events = Observable.merge(add1,add5,reset)
-
-        events
-            .bind(to: viewModel.uiEvents)
-            .disposed(by: disposeBag)
-
-        viewModel.state
+        Observable.merge(add1,add5,reset)
+            .toViewState(initialState: .empty)
             .map { $0.count.description }
             .drive(scoreLabel.rx.text)
             .disposed(by: disposeBag)
     }
-
-
 }
 
