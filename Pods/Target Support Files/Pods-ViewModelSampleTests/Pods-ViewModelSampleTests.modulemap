@@ -1,0 +1,6 @@
+framework module Pods_ViewModelSampleTests {
+  umbrella header "Pods-ViewModelSampleTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
