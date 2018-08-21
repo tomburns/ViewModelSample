@@ -25,6 +25,7 @@ extension ObservableConvertibleType where E == Counter.Event {
         return asObservable()
             .scan(initialState, accumulator: Counter.reduce)
             .asDriver(onErrorJustReturn: .empty)
+            .startWith(initialState)
     }
 }
 

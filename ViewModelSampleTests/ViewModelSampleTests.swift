@@ -7,28 +7,55 @@
 //
 
 import XCTest
+
+import RxSwift
+import RxCocoa
+import RxTest
+
+
 @testable import ViewModelSample
 
 class ViewModelSampleTests: XCTestCase {
+    var testScheduler: TestScheduler!
+    var bag: DisposeBag!
+
+    var uiEvents = PublishSubject<Counter.Event>()
 
     override func setUp() {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+        super.setUp()
 
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        testScheduler = TestScheduler(initialClock: 0)
+        bag = DisposeBag()
     }
 
     func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
 
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+        let subject = testScheduler.createColdObservable([.next(0, Counter.Event.add(1)),
+                                           .next(100, Counter.Event.add(5)),
+                                           .next(200, Counter.Event.reset)])
+            .toViewState(initialState: .empty)
+            .asObservable()
 
+        let result = testScheduler.start { subject }
+
+        print(result.events.map { $0.value })
+
+        let results = result.events.map { $0.value }
+
+        let expectedStates: [Event<Counter>] = [
+            .next(Counter.empty),
+            .next(Counter(count: 1)),
+            .next(Counter(count: 6)),
+            .next(Counter.empty)
+        ]
+
+        XCTAssertEqual(results, expectedStates)
+    }
+}
+
+
+extension Counter: Equatable {
+    public static func == (lhs: Counter, rhs: Counter) -> Bool {
+        return lhs.count == rhs.count
+    }
 }

@@ -30,11 +30,23 @@ class ViewController: UIViewController {
         let add5 = add5Button.rx.tap.map { Counter.Event.add(5) }
         let reset = resetButton.rx.tap.map { Counter.Event.reset }
 
-        Observable.merge(add1,add5,reset)
+        let state = Observable.merge(add1,add5,reset)
             .toViewState(initialState: .empty)
+
+        state
             .map { $0.count.description }
             .drive(scoreLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        state
+            .map { $0.resetEnabled }
+            .drive(resetButton.rx.isEnabled)
             .disposed(by: disposeBag)
     }
 }
 
+fileprivate extension Counter {
+    var resetEnabled: Bool {
+        return count != 0
+    }
+}
